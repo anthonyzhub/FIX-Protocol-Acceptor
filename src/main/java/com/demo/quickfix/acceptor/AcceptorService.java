@@ -3,8 +3,12 @@ package com.demo.quickfix.acceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import quickfix.*;
+import quickfix.field.*;
+import quickfix.fix42.ExecutionReport;
 import quickfix.fix42.MessageCracker;
 import quickfix.fix42.NewOrderSingle;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -54,9 +58,38 @@ public class AcceptorService extends MessageCracker implements Application {
     }
 
     @quickfix.MessageCracker.Handler
-    public void onMessage(NewOrderSingle newOrderSingle, SessionID sessionID) {
+    public void onMessage(NewOrderSingle newOrderSingle, SessionID sessionID) throws FieldNotFound {
         // This func will be called whenever a NewOrderSingle is sent from the counterparty
         // IMPORTANT: To receive messages from FIX Initiator, handlers must be used
         log.info("Received NewOrderSingle {}", newOrderSingle);
+
+        String clientOrderID = newOrderSingle.getClOrdID().getValue();
+        char side = newOrderSingle.getSide().getValue();
+        double orderQty = newOrderSingle.getOrderQty().getValue();
+        String symbol = newOrderSingle.getSymbol().getValue();
+
+        ExecutionReport executionReport = new ExecutionReport(
+                new OrderID("ORDER-" + System.currentTimeMillis()),
+                new ExecID("EXEC-" + System.currentTimeMillis()),
+                new ExecTransType(ExecTransType.NEW),
+                new ExecType(ExecType.NEW),
+                new OrdStatus(OrdStatus.NEW),
+                new Symbol(symbol),
+                new Side(side),
+                new LeavesQty(orderQty),
+                new CumQty(0),
+                new AvgPx(0)
+        );
+
+        executionReport.set(new ClOrdID(clientOrderID));
+        executionReport.set(new TransactTime(LocalDateTime.now()));
+
+        try {
+            Session.sendToTarget(executionReport, sessionID);
+            log.info("Sent ExecutionReport ({}) to [{}]: {}", executionReport.getExecType(), sessionID.getTargetCompID(), executionReport);
+        } catch (SessionNotFound e) {
+            String errMsg = String.format("Unable to send executionReport to [%s]", sessionID.getTargetCompID());
+            throw new RuntimeException(errMsg, e);
+        }
     }
 }
