@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import quickfix.*;
 
-@Configuration
+//@Configuration
 public class AcceptorConfiguration {
 
     @Bean
