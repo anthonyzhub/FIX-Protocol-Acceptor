@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import quickfix.*;
 import quickfix.fix42.MessageCracker;
+import quickfix.fix42.NewOrderSingle;
 
 @Slf4j
 @Service
@@ -50,5 +51,12 @@ public class AcceptorService extends MessageCracker implements Application {
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         // Accepts app-level messages from counterparty
         crack(message, sessionID);
+    }
+
+    @quickfix.MessageCracker.Handler
+    public void onMessage(NewOrderSingle newOrderSingle, SessionID sessionID) {
+        // This func will be called whenever a NewOrderSingle is sent from the counterparty
+        // IMPORTANT: To receive messages from FIX Initiator, handlers must be used
+        log.info("Received NewOrderSingle {}", newOrderSingle);
     }
 }
