@@ -11,14 +11,14 @@ import quickfix.fix42.ExecutionReport;
 @RequiredArgsConstructor
 public class KafkaService {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, ExecutionReport> kafkaTemplate;
 
-    @KafkaListener(topics = "FIX-Orders", groupId = "orders")
+    @KafkaListener(topics = "FIX_ORDERS", groupId = "ORDER_ID")
     public void listenGroupOrders(String message) {
         log.info("Received Message in group [Order]: {}", message);
     }
 
     public void sendKafkaMessage(ExecutionReport executionReport) {
-        kafkaTemplate.send(executionReport.toString(), KafkaTopics.FIX_ORDERS.toString());
+        kafkaTemplate.send(KafkaTopics.FIX_ORDERS.toString(), executionReport);
     }
 }
