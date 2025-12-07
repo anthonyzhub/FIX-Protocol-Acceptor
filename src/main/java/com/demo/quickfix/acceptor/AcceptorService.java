@@ -68,6 +68,11 @@ public class AcceptorService extends MessageCracker implements Application {
         double orderQty = newOrderSingle.getOrderQty().getValue();
         String symbol = newOrderSingle.getSymbol().getValue();
 
+        ExecutionReport executionReport = generateExecutionReport(clientOrderID, side, orderQty, symbol);
+        sendExecutionReport(executionReport, sessionID);
+    }
+
+    private ExecutionReport generateExecutionReport(String clientOrderID, char side, double orderQty, String symbol) {
         ExecutionReport executionReport = new ExecutionReport(
                 new OrderID("ORDER-" + System.currentTimeMillis()),
                 new ExecID("EXEC-" + System.currentTimeMillis()),
@@ -84,12 +89,18 @@ public class AcceptorService extends MessageCracker implements Application {
         executionReport.set(new ClOrdID(clientOrderID));
         executionReport.set(new TransactTime(LocalDateTime.now()));
 
+        return executionReport;
+    }
+
+    private void sendExecutionReport(ExecutionReport executionReport, SessionID sessionID) {
         try {
             Session.sendToTarget(executionReport, sessionID);
             log.info("Sent ExecutionReport ({}) to [{}]: {}", executionReport.getExecType(), sessionID.getTargetCompID(), executionReport);
         } catch (SessionNotFound e) {
             String errMsg = String.format("Unable to send executionReport to [%s]", sessionID.getTargetCompID());
             throw new RuntimeException(errMsg, e);
+        } catch (FieldNotFound e) {
+            throw new RuntimeException(e);
         }
     }
 }
