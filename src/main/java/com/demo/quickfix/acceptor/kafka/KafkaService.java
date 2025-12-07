@@ -1,5 +1,6 @@
 package com.demo.quickfix.acceptor.kafka;
 
+import com.demo.quickfix.acceptor.kafka.config.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -10,7 +11,6 @@ import quickfix.fix42.ExecutionReport;
 @RequiredArgsConstructor
 public class KafkaService {
 
-    private static final String FIX_ORDER_TOPIC = "FIX-Orders";
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @KafkaListener(topics = "FIX-Orders", groupId = "orders")
@@ -19,6 +19,6 @@ public class KafkaService {
     }
 
     public void sendKafkaMessage(ExecutionReport executionReport) {
-        kafkaTemplate.send(executionReport.toString(), FIX_ORDER_TOPIC);
+        kafkaTemplate.send(executionReport.toString(), KafkaTopics.FIX_ORDERS.toString());
     }
 }

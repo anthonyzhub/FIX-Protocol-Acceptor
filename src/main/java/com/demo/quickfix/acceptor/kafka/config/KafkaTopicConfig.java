@@ -1,4 +1,4 @@
-package com.demo.quickfix.acceptor.kafka;
+package com.demo.quickfix.acceptor.kafka.config;
 
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -27,6 +27,6 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic fixOrdersTopic() {
         // NOTE: Kafka automatically creates topics when a bean returns NewTopic is initialized
-        return new NewTopic("FIX-Orders", 1, (short) 1);
+        return new NewTopic(KafkaTopics.FIX_ORDERS.toString(), 1, (short) 1);
     }
 }
